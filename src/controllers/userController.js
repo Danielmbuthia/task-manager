@@ -4,7 +4,8 @@ exports.create = async (req,res) =>{
     const user = new User(req.body);
  try{
      await user.save();
-         res.status(201).send(user);
+     const token = await user.generateAuthToken();
+         res.status(201).send({user,token});
  }catch (e){
      res.status(500).send(e.message);
  }
@@ -33,14 +34,24 @@ exports.readAUser = async (req,res)=>{
 }
 
 exports.updateAUser =async (req,res)=>{
+    const updates = Object.keys(req.body);
+    const allowedUpdates = ['name','email','password','age'];
+    const isValidOperation = updates.every((update)=>allowedUpdates.includes(update));
+    if (!isValidOperation){
+        return res.status(400).send('Not allowed');
+    }
     try{
-        const user = await User.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true});
+        const user = await User.findById(req.params.id);
         if (!user){
             return res.status(404).send('No user found');
         }
+        updates.forEach((update)=>user[update] = req.body[update]);
+
+        await user.save();
+
         res.status(201).send(user);
     }catch (e) {
-        res.status(400).send(e)
+        res.status(400).send(e.message)
     }
 }
 
@@ -53,6 +64,17 @@ exports.deleteAUser =async (req,res)=>{
         res.status(200).send(user);
     }catch (e) {
         res.status(500).send(e.message);
+    }
+}
+
+exports.loginUser = async (req,res)=>{
+    try{
+       const user = await  User.findByCredentials(req.body.email,req.body.password);
+       const token = await user.generateAuthToken();
+
+       res.status(200).send({user,token});
+    }catch (e) {
+        res.status(400).send('unable to login');
     }
 }
 

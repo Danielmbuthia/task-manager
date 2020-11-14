@@ -1,25 +1,20 @@
 let user = require('../controllers/userController');
 let task = require('../controllers/taskController');
 
+let auth = require('../middleware/authMiddleware');
+
 module.exports =(app)=>{
-   app.route('/users')
-       .post(user.create);
-   app.route('/users')
-       .get(user.readAllUsers);
-   app.route('/users/:id')
-       .get(user.readAUser);
-   app.route('/users/:id')
-       .patch(user.updateAUser)
-   app.route('/users/:id')
-       .delete(user.deleteAUser);
-   app.route('/tasks')
-       .post(task.create);
-   app.route('/tasks')
-       .get(task.readAllTasks);
-   app.route('/tasks/:id')
-       .get(task.readATask)
-   app.route('/tasks/:id')
-       .patch(task.updateATask)
-   app.route('/tasks/:id')
-       .delete(task.deleteATask)
+   ////user routes
+   app.post('/user/login',user.loginUser);
+   app.post('/users',user.create);
+   app.get('/users',auth,user.readAllUsers);
+   app.get('/users/:id',auth,user.readAUser)
+   app.patch('/users/:id',auth,user.updateAUser);
+   app.delete('/users/:id',auth,user.deleteAUser);
+   //// task routes
+   app.post('/tasks',auth,task.create);
+   app.get('/tasks',auth,task.readAllTasks);
+   app.get('/tasks/:id',auth,task.readATask);
+   app.patch('/tasks/:id',auth,task.updateATask);
+   app.delete('/tasks/:id',auth,task.deleteATask);
 }
