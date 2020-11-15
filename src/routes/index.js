@@ -7,10 +7,12 @@ module.exports =(app)=>{
    ////user routes
    app.post('/user/login',user.loginUser);
    app.post('/users',user.create);
-   app.get('/users',auth,user.readAllUsers);
+   app.get('/user/profile',auth,user.readAllUsers);
    app.get('/users/:id',auth,user.readAUser)
-   app.patch('/users/:id',auth,user.updateAUser);
-   app.delete('/users/:id',auth,user.deleteAUser);
+   app.patch('/users/me',auth,user.updateAUser);
+   app.delete('/users/me',auth,user.deleteAUser);
+   app.post('/user/logout',auth,user.logoutUser);
+   app.post('/users/logoutAll',auth,user.logoutAll);
    //// task routes
    app.post('/tasks',auth,task.create);
    app.get('/tasks',auth,task.readAllTasks);

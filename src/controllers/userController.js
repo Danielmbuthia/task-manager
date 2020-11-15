@@ -12,12 +12,7 @@ exports.create = async (req,res) =>{
 }
 
 exports.readAllUsers = async (req,res)=>{
-    try{
-      const users = await User.find({});
-            res.status(201).send(users);
-    }catch (e) {
-        res.status(500).send(e.message);
-    }
+    res.send(req.user);
 }
 
 exports.readAUser = async (req,res)=>{
@@ -41,15 +36,11 @@ exports.updateAUser =async (req,res)=>{
         return res.status(400).send('Not allowed');
     }
     try{
-        const user = await User.findById(req.params.id);
-        if (!user){
-            return res.status(404).send('No user found');
-        }
-        updates.forEach((update)=>user[update] = req.body[update]);
+        updates.forEach((update)=>req.user[update] = req.body[update]);
 
-        await user.save();
+        await req.user.save();
 
-        res.status(201).send(user);
+        res.status(201).send(req.user);
     }catch (e) {
         res.status(400).send(e.message)
     }
@@ -57,11 +48,8 @@ exports.updateAUser =async (req,res)=>{
 
 exports.deleteAUser =async (req,res)=>{
     try{
-        const user = await User.findByIdAndDelete(req.params.id);
-        if (!user){
-            return res.status(404).send('No user to delete');
-        }
-        res.status(200).send(user);
+       await req.user.remove();
+        res.status(200).send(req.user);
     }catch (e) {
         res.status(500).send(e.message);
     }
@@ -78,4 +66,25 @@ exports.loginUser = async (req,res)=>{
     }
 }
 
+exports.logoutUser = async (req,res)=>{
+    try{
+       req.user.tokens = req.user.tokens.filter((token)=>{
+           return token.token !== req.token;
+       })
+        await req.user.save();
+       res.send('logged out successfully');
+    }catch (e) {
+        res.status(500).send(e.message);
+    }
+}
+
+exports.logoutAll =async (req,res)=>{
+    try{
+        req.user.tokens =[];
+        await req.user.save();
+        res.send('all logged out successfully');
+    }catch (e) {
+        res.status(500).send(e.message);
+    }
+}
 

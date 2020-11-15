@@ -3,7 +3,10 @@ let Task = require('../models/taskModel');
 exports.create = async (req,res)=>{
   try{
 
-      const task = new Task(req.body);
+      const task = new Task({
+          ...req.body,
+          owner:req.user.id
+      });
       await task.save()
       res.status(201).send(task)
   }catch (e) {
@@ -13,8 +16,8 @@ exports.create = async (req,res)=>{
 
 exports.readAllTasks = async (req,res)=>{
     try{
-        const tasks = await Task.find({});
-            res.status(201).send(tasks)
+        await req.user.populate('tasks').execPopulate();
+        res.status(200).send(req.user.tasks)
     }catch (e) {
         res.status(500).send(e.message);
     }
@@ -23,11 +26,11 @@ exports.readAllTasks = async (req,res)=>{
 exports.readATask = async (req,res)=>{
      const _id = req.params.id;
     try{
-      const task =  await Task.findById(_id);
+      const task =  await Task.findOne({_id,owner:req.user._id});
            if (!task){
              return res.status(404).send('no task with that id');
            }
-           res.status(201).send(task);
+           res.status(200).send(task);
     }catch (e) {
         res.status(500).send(e.message);
     }
@@ -40,14 +43,14 @@ exports.updateATask =async (req,res)=>{
         return res.status(400).send('An invalid request')
     }
     try{
-        const task = await Task.findById(req.params.id);
+        const task = await Task.findOne({_id:req.params.id,owner:req.user._id});
         if (!task){
             return res.status(404).send('No task found');
         }
         updates.forEach((update)=>task[update]=req.body[update]);
         await task.save();
 
-        res.status(201).send(task);
+        res.status(200).send(task);
     }catch (e) {
         res.status(400).send(e.message);
     }
@@ -55,11 +58,11 @@ exports.updateATask =async (req,res)=>{
 
 exports.deleteATask =async (req,res)=>{
     try{
-       const task = await Task.findByIdAndDelete(req.params.id);
+       const task = await Task.findOneAndDelete({_id:req.params.id,owner:req.user._id});
        if (!task){
            return res.status(404).send('No task to delete');
        }
-       res.status(201).send(task)
+       res.status(200).send(task)
     }catch (e) {
         res.status(400).send(e.message);
     }
