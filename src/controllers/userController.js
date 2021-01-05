@@ -87,4 +87,13 @@ exports.logoutAll =async (req,res)=>{
         res.status(500).send(e.message);
     }
 }
+exports.uploadProfilePic = async (req,res)=>{
+    try{
+        req.user.avatar = req.file.buffer;
+        await req.user.save();
+        res.send()
+    }catch (e) {
+        res.status(500).send(e.message)
+    }
+}
 
