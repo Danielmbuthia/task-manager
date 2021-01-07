@@ -31,10 +31,13 @@ module.exports =(app)=>{
          error:error.message
       })//// error handling from multer
    });
+   app.post('/user/me/delete/avatar',auth,user.deleteUserAvatar)
+   app.get('/user/:id/avatar',user.getUserAvatar);
    //// task routes
    app.post('/tasks',auth,task.create);
    app.get('/tasks',auth,task.readAllTasks);
    app.get('/tasks/:id',auth,task.readATask);
    app.patch('/tasks/:id',auth,task.updateATask);
    app.delete('/tasks/:id',auth,task.deleteATask);
+
 }

@@ -1,9 +1,12 @@
 const User = require('../models/userModel');
+const sharp = require('sharp');
+const {sendWelcomeEmail} = require('../emails/account')
 
 exports.create = async (req,res) =>{
     const user = new User(req.body);
  try{
      await user.save();
+     sendWelcomeEmail(user.email,user.name)
      const token = await user.generateAuthToken();
          res.status(201).send({user,token});
  }catch (e){
@@ -89,11 +92,37 @@ exports.logoutAll =async (req,res)=>{
 }
 exports.uploadProfilePic = async (req,res)=>{
     try{
-        req.user.avatar = req.file.buffer;
+        const buffer =await sharp(req.file.buffer).resize({
+            width:250,height:250
+        }).png().toBuffer();
+        req.user.avatar = buffer;
         await req.user.save();
         res.send()
     }catch (e) {
         res.status(500).send(e.message)
+    }
+}
+
+exports.deleteUserAvatar =async (req,res)=>{
+    try{
+        req.user.avatar = undefined;
+        await req.user.save();
+        res.send();
+    }catch (e){
+        res.status(500).status(e.message);
+    }
+}
+exports.getUserAvatar =async (req,res)=>{
+    try{
+        const user = await User.findById(req.params.id);
+
+        if (!user || !user.avatar){
+           res.status(500).send();
+        }
+        res.set('Content-Type','image/png');
+        res.send(user.avatar);
+    }catch (e) {
+        res.status(500).send();
     }
 }
 
